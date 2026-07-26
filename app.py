@@ -2,6 +2,8 @@ import streamlit as st
 import pickle
 import pandas as pd
 
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage
 # Load Model
 model = pickle.load(open("loan_model.pkl", "rb"))
 
@@ -44,3 +46,37 @@ if st.button("Predict"):
         st.success(" Loan Approved")
     else:
         st.error(" Loan Rejected")
+
+
+st.markdown("---")
+st.header("🤖 AI Loan Assistant")
+
+# Groq API Key from Streamlit Secrets
+groq_api_key = st.secrets["GROQ_API_KEY"]
+
+# Load LLM
+llm = ChatGroq(
+    model="llama-3.1-8b-instant",
+    api_key=groq_api_key,
+    temperature=0.5
+)
+
+# User Question
+question = st.text_input("Ask any question about Bank Loans")
+
+if st.button("Ask Chatbot"):
+
+    if question:
+
+        prompt = f"""
+You are an AI Bank Loan Assistant.
+
+Answer only loan-related questions in simple English.
+
+User Question:
+{question}
+"""
+
+        response = llm.invoke([HumanMessage(content=prompt)])
+
+        st.success(response.content)
